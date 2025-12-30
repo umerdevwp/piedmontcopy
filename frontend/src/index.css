@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: 180 100% 25%;
+    /* #007fb1-like, but we will use HSL */
+    --primary-foreground: 0 0% 100%;
+
+    --accent: 25 100% 50%;
+    /* #ff6900 */
+    --accent-foreground: 0 0% 100%;
+
+    --background: 210 40% 98%;
+    /* Lighter, clean background */
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 222 47% 11%;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans antialiased;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+.rich-text-content {
+  @apply break-words overflow-hidden;
+  word-break: break-word;
+}
+
+.rich-text-content h1 {
+  @apply text-3xl font-black mb-4 mt-6;
+}
+
+.rich-text-content h2 {
+  @apply text-2xl font-black mb-3 mt-5;
+}
+
+.rich-text-content h3 {
+  @apply text-xl font-bold mb-2 mt-4;
+}
+
+.rich-text-content p {
+  @apply mb-4 leading-relaxed;
+}
+
+.rich-text-content ul {
+  @apply list-disc pl-6 mb-4 space-y-2;
+}
+
+.rich-text-content ol {
+  @apply list-decimal pl-6 mb-4 space-y-2;
+}
+
+.rich-text-content a {
+  @apply text-primary underline hover:text-primary/80;
+}
+
+.rich-text-content blockquote {
+  @apply border-l-4 border-slate-200 pl-4 italic my-4;
+}
+
+.rich-text-content strong {
+  @apply font-bold;
+}
+
+.rich-text-content em {
+  @apply italic;
+}
+
+/* React Quill Custom Styling */
+.ql-container.ql-snow {
+  @apply rounded-b-2xl border-2 border-slate-100 bg-slate-50 !important;
+}
+
+.ql-toolbar.ql-snow {
+  @apply rounded-t-2xl border-2 border-slate-100 bg-white !important;
+}
+
+.ql-editor {
+  @apply min-h-[150px] text-base font-medium text-slate-700 !important;
+}
+
+.ql-editor.ql-blank::before {
+  @apply text-slate-400 font-bold !important;
+}
