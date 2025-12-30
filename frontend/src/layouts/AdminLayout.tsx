@@ -1,7 +1,10 @@
 
 import { useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, Users, FileText, Settings, LogOut, Printer, MonitorCheck } from 'lucide-react';
+import {
+    LayoutDashboard, Package, ShoppingCart, Users,
+    Settings, LogOut, Printer, MonitorCheck, Layout
+} from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Toaster } from 'sonner';
 
@@ -24,7 +27,7 @@ export default function AdminLayout() {
         { icon: Package, label: 'Products', path: '/admin/products' },
         { icon: MonitorCheck, label: 'Services', path: '/admin/services' },
         { icon: Users, label: 'Users', path: '/admin/users' },
-        { icon: FileText, label: 'Content', path: '/admin/content' },
+        { icon: Layout, label: 'CMS', path: '/admin/content' },
         {
             icon: Settings,
             label: 'Settings',

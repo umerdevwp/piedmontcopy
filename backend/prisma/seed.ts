@@ -17,6 +17,7 @@ async function main() {
     await prisma.productImage.deleteMany({});
     await prisma.product.deleteMany({});
     await prisma.user.deleteMany({});
+    await prisma.page.deleteMany({});
 
     console.log('🗑️  Cleared existing data (Clean Slate)');
 
@@ -331,6 +332,109 @@ async function main() {
     }
 
     console.log('✅ Created 10 realistic orders with multiple items');
+
+    // 6. CREATE CMS PAGES
+    const pages = [
+        {
+            slug: 'about-us',
+            title: 'About PiedmontCopy',
+            content: [
+                { id: 'h1', type: 'hero', content: { title: 'Decades of Printing Excellence', subtitle: 'Serving the Piedmont community with precision and care since 1985.', buttonText: 'Our Services' } },
+                { id: 't1', type: 'text', content: { body: '<h2>Our Story</h2><p>PiedmontCopy started as a small neighborhood print shop and has grown into a full-service digital production facility. We believe that every project deserves professional attention, regardless of its size.</p>' } },
+                { id: 'f1', type: 'features', content: { items: [{ title: 'Local Expertise', desc: 'We understand the needs of our local community.' }, { title: 'Premium Quality', desc: 'We use the latest digital printing technology.' }, { title: 'Speed', desc: 'Most projects completed within 24-48 hours.' }] } }
+            ]
+        },
+        {
+            slug: 'shipping-info',
+            title: 'Shipping & Turnaround',
+            content: [
+                { id: 'h2', type: 'hero', content: { title: 'Fast. Reliable. Everywhere.', subtitle: 'Learn about our shipping options and production timelines.', buttonText: '' } },
+                { id: 't2', type: 'text', content: { body: '<h3>Production Times</h3><p>Standard production is 1-2 business days. Larger orders may require additional time.</p><h3>Shipping Carries</h3><p>We ship via UPS and FedEx for reliable nationwide delivery.</p>' } }
+            ]
+        },
+        {
+            slug: 'file-preparation',
+            title: 'File Preparation Guide',
+            content: [
+                { id: 'h3', type: 'hero', content: { title: 'Prepare for Perfect Prints', subtitle: 'Follow these guidelines to ensure your files are print-ready.', buttonText: 'Download Templates' } },
+                { id: 't3', type: 'text', content: { body: '<ul><li>Use PDF/X-1a format</li><li>Include 0.125 inch bleed</li><li>CMYK color mode only</li><li>300 DPI resolution minimum</li></ul>' } }
+            ]
+        },
+        {
+            slug: 'showcase',
+            title: 'Premium Blocks Showcase',
+            content: [
+                {
+                    id: 'slider1',
+                    type: 'hero-slider',
+                    content: {
+                        slides: [
+                            { title: 'The Future of Print', subtitle: 'Precision, passion, and premium quality on every page.', buttonText: 'View Portfolio', bgImage: 'https://images.unsplash.com/photo-1562654501-a0ccc0af3ff1?q=80&w=2070', tag: 'Excellence' },
+                            { title: 'Digital Innovation', subtitle: 'State of the art technology for the modern creator.', buttonText: 'Get Started', bgImage: 'https://images.unsplash.com/photo-1586075010642-da59dc99c6dc?q=80&w=2070', tag: 'Innovation' }
+                        ]
+                    }
+                },
+                {
+                    id: 'section1',
+                    type: 'section-layout',
+                    content: {
+                        columns: [
+                            {
+                                width: '2/3',
+                                blocks: [
+                                    { id: 't-nested', type: 'text', content: { body: '<h2 style="font-style: italic;">We believe in the power of professional design.</h2><p>Our team works tirelessly to ensure your brand stands out with deep blacks, vibrant colors, and crisp typography.</p>' } }
+                                ]
+                            },
+                            {
+                                width: '1/3',
+                                blocks: [
+                                    { id: 'i-nested', type: 'image', content: { url: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=2070', caption: 'Our Studio' } }
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    id: 'parallax1',
+                    type: 'parallax',
+                    content: { title: 'Absolute Depth', subtitle: 'Experience our immersive parallax banners.', imageUrl: 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2070', enabled: true }
+                },
+                {
+                    id: 'list1',
+                    type: 'premium-list',
+                    content: {
+                        style: 'cards',
+                        items: [
+                            { title: 'Offset Printing', desc: 'Perfect for high volume books and catalogs.' },
+                            { title: 'Digital Press', desc: 'Precision color for marketing collateral.' },
+                            { title: 'Large Format', desc: 'Make a statement with wide banners.' }
+                        ]
+                    }
+                },
+                {
+                    id: 'testimonials1',
+                    type: 'testimonials',
+                    content: {
+                        items: [
+                            { author: 'Sarah Jenkins', quote: 'The quality of the business cards was second to none. Absolutely stunning.' },
+                            { author: 'Michael Chen', quote: 'Fastest turnaround I have seen in California. Truly impressive service.' }
+                        ]
+                    }
+                }
+            ]
+        }
+    ];
+
+    for (const page of pages) {
+        await prisma.page.create({
+            data: {
+                slug: page.slug,
+                title: page.title,
+                content: page.content
+            }
+        });
+    }
+    console.log('✅ Created initial CMS pages');
     console.log('\n🌟 SEEDING COMPLETE!');
     console.log('------------------');
     console.log('Admin Email: admin@piedmontcopy.com');

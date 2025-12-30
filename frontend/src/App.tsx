@@ -20,6 +20,9 @@ import AdminServicesPage from './pages/admin/AdminServicesPage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminThemeSettingsPage from './pages/admin/AdminThemeSettingsPage';
+import AdminCMSPage from './pages/admin/AdminCMSPage';
+import AdminPageEditor from './pages/admin/AdminPageEditor';
+import DynamicPage from './pages/DynamicPage';
 import { ThemeProvider } from './components/ThemeProvider';
 
 function App() {
@@ -37,6 +40,7 @@ function App() {
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="dashboard" element={<UserDashboardPage />} />
+          <Route path="p/:slug" element={<DynamicPage />} />
           <Route path="*" element={<div className="p-20 text-center font-bold text-2xl">404 - Not Found</div>} />
         </Route>
 
@@ -47,7 +51,9 @@ function App() {
           <Route path="products" element={<AdminProductsPage />} />
           <Route path="services" element={<AdminServicesPage />} />
           <Route path="users" element={<AdminUsersPage />} />
-          <Route path="content" element={<div className="p-8">Content Management (Coming Soon)</div>} />
+          <Route path="content" element={<AdminCMSPage />} />
+          <Route path="content/new" element={<AdminPageEditor />} />
+          <Route path="content/edit/:id" element={<AdminPageEditor />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="settings/theme" element={<AdminThemeSettingsPage />} />
         </Route>
