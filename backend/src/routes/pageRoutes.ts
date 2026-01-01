@@ -40,7 +40,11 @@ router.post('/', authenticate, isAdmin, async (req, res) => {
             data: { slug, title, content }
         });
         res.status(201).json(page);
-    } catch (error) {
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            return res.status(400).json({ error: 'A page with this slug already exists.' });
+        }
+        console.error('Create Page Error:', error);
         res.status(500).json({ error: 'Failed to create page' });
     }
 });
@@ -55,7 +59,14 @@ router.put('/:id', authenticate, isAdmin, async (req, res) => {
             data: { slug, title, content }
         });
         res.json(page);
-    } catch (error) {
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            return res.status(400).json({ error: 'A page with this slug already exists.' });
+        }
+        if (error.code === 'P2025') {
+            return res.status(404).json({ error: 'Page not found.' });
+        }
+        console.error('Update Page Error:', error);
         res.status(500).json({ error: 'Failed to update page' });
     }
 });

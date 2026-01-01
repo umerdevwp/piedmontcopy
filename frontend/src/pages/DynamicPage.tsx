@@ -49,7 +49,7 @@ export default function DynamicPage() {
     }
 
     return (
-        <div className="max-w-[1400px] mx-auto py-12 px-6">
+        <div className="w-full">
             <PageRenderer blocks={typeof page.content === 'string' ? JSON.parse(page.content) : page.content} />
         </div>
     );

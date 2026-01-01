@@ -25,3 +25,6 @@ yarn-error.log*
 # Prisma
 backend/prisma/dev.db
 backend/prisma/dev.db-journal
+
+# Uploads
+backend/public/uploads/

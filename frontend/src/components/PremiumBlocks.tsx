@@ -1,31 +1,22 @@
 
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useEmblaCarousel from 'embla-carousel-react';
-import { ChevronLeft, ChevronRight, CheckCircle2, ArrowRight, User, Star, Quote } from 'lucide-react';
+import { CheckCircle2, ArrowRight, User, Star, Quote } from 'lucide-react';
 
 // --- Parallax Block ---
 export const ParallaxBlock = ({ content }: { content: any }) => {
-    const [offsetY, setOffsetY] = useState(0);
-    const handleScroll = () => setOffsetY(window.pageYOffset);
-
-    useEffect(() => {
-        if (content.enabled) {
-            window.addEventListener("scroll", handleScroll);
-            return () => window.removeEventListener("scroll", handleScroll);
-        }
-    }, [content.enabled]);
+    // Using CSS background-attachment: fixed for robust parallax effect
 
     return (
-        <div className="relative h-[600px] overflow-hidden rounded-[4rem] my-12 shadow-2xl group">
+        <div className="relative overflow-hidden shadow-2xl group" style={{ height: (content.height || 600) + 'px' }}>
             <div
-                className="absolute inset-0 w-full h-[120%] -top-[10%]"
+                className="absolute inset-0 w-full h-full"
                 style={{
                     backgroundImage: `url(${content.imageUrl})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
-                    transform: content.enabled ? `translateY(${offsetY * 0.3}px)` : 'none',
-                    transition: content.enabled ? 'none' : 'transform 0.5s ease-out'
+                    backgroundAttachment: content.enabled ? 'fixed' : 'scroll'
                 }}
             />
             <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors duration-700" />
@@ -60,7 +51,7 @@ export const HeroSlider = ({ content }: { content: any }) => {
     }, [emblaApi, onSelect]);
 
     return (
-        <div className="relative overflow-hidden rounded-[4rem] my-8 shadow-2xl bg-slate-900 group">
+        <div className="relative overflow-hidden shadow-2xl bg-slate-900 group">
             <div className="overflow-hidden" ref={emblaRef}>
                 <div className="flex">
                     {content.slides.map((slide: any, index: number) => (
@@ -117,7 +108,7 @@ export const TestimonialSlider = ({ content }: { content: any }) => {
     const [emblaRef] = useEmblaCarousel({ loop: true, align: 'start' });
 
     return (
-        <div className="py-24 bg-slate-50 rounded-[4rem] my-12 px-8">
+        <div className="max-w-7xl mx-auto py-24 bg-slate-50 rounded-[4rem] my-12 px-8">
             <div className="text-center mb-16">
                 <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight italic">What our clients say</h2>
             </div>
@@ -161,7 +152,7 @@ export const PremiumList = ({ content }: { content: any }) => {
     };
 
     return (
-        <div className={`py-12 ${styles[content.style] || styles.grid}`}>
+        <div className={`max-w-7xl mx-auto py-12 ${styles[content.style] || styles.grid}`}>
             {content.items.map((item: any, idx: number) => (
                 <motion.div
                     key={idx}
@@ -189,9 +180,8 @@ export const PremiumList = ({ content }: { content: any }) => {
     );
 };
 
-// --- Content Media ---
 export const ContentMedia = ({ content }: { content: any }) => (
-    <div className={`flex flex-col md:flex-row items-center gap-12 py-20 ${content.swap ? 'md:flex-row-reverse' : ''}`}>
+    <div className={`max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12 py-20 px-8 ${content.swap ? 'md:flex-row-reverse' : ''}`}>
         <div className="flex-1 w-full">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}

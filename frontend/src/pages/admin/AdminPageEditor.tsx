@@ -1,11 +1,11 @@
-
 import { useState, useEffect } from 'react';
+import { BLOCK_DEFINITIONS, type FieldDefinition } from '../../config/cms-config';
 import {
     Save, ChevronLeft, Trash2, GripVertical,
-    Type, Image as ImageIcon, Box, Layout,
-    CheckCircle2, Monitor, Smartphone, Tablet,
-    Settings2, X, RefreshCw, User, Plus, Layers, MousePointer2
+    Box, Layout, Monitor, Smartphone, Tablet,
+    X, RefreshCw, Settings2
 } from 'lucide-react';
+import ImageUploader from '../../components/ImageUploader';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -28,26 +28,15 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 // --- Block Definitions ---
-type BlockType = 'hero' | 'text' | 'features' | 'image' | 'hero-slider' | 'parallax' | 'premium-list' | 'testimonials' | 'content-media' | 'section-layout';
+type BlockType = keyof typeof BLOCK_DEFINITIONS;
 
 interface Block {
     id: string;
-    type: BlockType;
+    type: BlockType | string; // loosen type to allow for potential legacy or dynamic types
     content: any;
 }
 
-const DEFAULT_BLOCKS: Record<BlockType, any> = {
-    hero: { title: 'Welcome to our Page', subtitle: 'This is a beautiful sub-headline.', buttonText: 'Get Started', bgImage: '' },
-    text: { body: '<p>Start typing your professional content here...</p>' },
-    features: { items: [{ icon: 'Zap', title: 'Fast Delivery', desc: 'We deliver your prints in record time.' }] },
-    image: { url: '', caption: '' },
-    'hero-slider': { slides: [{ title: 'Elevate Your Brand', subtitle: 'Creative printing solutions for modern businesses.', buttonText: 'Explore Now', bgImage: '', tag: 'Premium' }] },
-    'parallax': { title: 'Dynamic Experience', subtitle: 'Be captivated by our visual effects.', imageUrl: '', enabled: true },
-    'premium-list': { style: 'grid', items: [{ title: 'Quality Prints', desc: 'Industry leading resolution' }, { title: 'Fast Turnaround', desc: 'Same day shipping available' }] },
-    'testimonials': { items: [{ author: 'John Doe', quote: 'PiedmontCopy transformed our marketing materials. Highly recommended!' }] },
-    'content-media': { title: 'The Perfect Partner', body: '<p>We work closely with you to bring your ideas to life with stunning clarity.</p>', imageUrl: '', buttonText: 'Learn More', swap: false },
-    'section-layout': { columns: [{ width: '1/2', blocks: [] }, { width: '1/2', blocks: [] }] }
-};
+// --- Block Definitions Removed (Imported from config) ---
 
 // --- Sortable Item Component ---
 function SortableBlock({ block, onSelect, onDelete, isSelected }: { block: Block, onSelect: () => void, onDelete: () => void, isSelected: boolean }) {
@@ -155,10 +144,22 @@ export default function AdminPageEditor() {
     };
 
     const addBlock = (type: BlockType) => {
+        const def = BLOCK_DEFINITIONS[type];
+        const initialContent: any = {};
+
+        // Initialize defaults from schema
+        def.fields.forEach(field => {
+            if (field.type === 'repeater' && field.defaultValue) {
+                initialContent[field.name] = [...field.defaultValue];
+            } else {
+                initialContent[field.name] = field.defaultValue;
+            }
+        });
+
         const newBlock = {
             id: Math.random().toString(36).substring(7),
             type,
-            content: JSON.parse(JSON.stringify(DEFAULT_BLOCKS[type]))
+            content: initialContent
         };
         setBlocks([...blocks, newBlock]);
         setSelectedBlockId(newBlock.id);
@@ -171,6 +172,134 @@ export default function AdminPageEditor() {
 
     const updateBlockContent = (updates: any) => {
         setBlocks(blocks.map(b => b.id === selectedBlockId ? { ...b, content: { ...b.content, ...updates } } : b));
+    };
+
+    // --- Dynamic Field Renderer ---
+    const renderField = (field: FieldDefinition, value: any, onChange: (val: any) => void) => {
+        switch (field.type) {
+            case 'text':
+                return (
+                    <div className="space-y-2" key={field.name}>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">{field.label}</label>
+                        <input
+                            type="text"
+                            value={value || ''}
+                            onChange={(e) => onChange(e.target.value)}
+                            className="w-full bg-slate-50 px-4 py-2 rounded-xl text-sm font-bold border-none focus:ring-2 focus:ring-primary/20"
+                        />
+                    </div>
+                );
+            case 'textarea':
+                return (
+                    <div className="space-y-2" key={field.name}>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">{field.label}</label>
+                        <textarea
+                            value={value || ''}
+                            onChange={(e) => onChange(e.target.value)}
+                            className="w-full bg-slate-50 px-4 py-2 rounded-xl text-sm font-medium border-none focus:ring-2 focus:ring-primary/20 min-h-[100px]"
+                        />
+                    </div>
+                );
+            case 'select':
+                return (
+                    <div className="space-y-2" key={field.name}>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">{field.label}</label>
+                        <select
+                            value={value || ''}
+                            onChange={(e) => onChange(e.target.value)}
+                            className="w-full bg-slate-50 px-4 py-2 rounded-xl text-sm font-bold border-none focus:ring-2 focus:ring-primary/20"
+                        >
+                            {field.options?.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                        </select>
+                    </div>
+                );
+            case 'toggle':
+                return (
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl" key={field.name}>
+                        <span className="text-xs font-bold text-slate-600">{field.label}</span>
+                        <button
+                            onClick={() => onChange(!value)}
+                            className={`w-12 h-6 rounded-full transition-all relative ${value ? 'bg-primary' : 'bg-slate-300'}`}
+                        >
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${value ? 'right-1' : 'left-1'}`} />
+                        </button>
+                    </div>
+                );
+            case 'color':
+                return (
+                    <div className="space-y-2" key={field.name}>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">{field.label}</label>
+                        <div className="flex items-center gap-2">
+                            <div className="h-10 w-10 rounded-lg border border-slate-200 overflow-hidden">
+                                <input
+                                    type="color"
+                                    value={value || '#000000'}
+                                    onChange={(e) => onChange(e.target.value)}
+                                    className="h-full w-full cursor-pointer scale-150"
+                                />
+                            </div>
+                            <input
+                                type="text"
+                                value={value || ''}
+                                onChange={(e) => onChange(e.target.value)}
+                                className="flex-1 bg-slate-50 px-4 py-2 rounded-xl text-xs font-mono border-none"
+                            />
+                        </div>
+                    </div>
+                );
+            case 'image':
+                return (
+                    <ImageUploader
+                        key={field.name}
+                        label={field.label}
+                        value={value}
+                        onChange={onChange}
+                    />
+                );
+            case 'repeater':
+                return (
+                    <div className="space-y-4" key={field.name}>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">{field.label}</label>
+                            <button
+                                onClick={() => {
+                                    const newItem: any = {};
+                                    field.fields?.forEach(f => newItem[f.name] = f.defaultValue);
+                                    onChange([...(value || []), newItem]);
+                                }}
+                                className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded font-bold hover:bg-primary/20"
+                            >
+                                + Add Item
+                            </button>
+                        </div>
+                        <div className="space-y-2">
+                            {(value || []).map((item: any, idx: number) => (
+                                <div key={idx} className="p-4 border border-slate-100 rounded-xl relative bg-slate-50/50">
+                                    <button
+                                        onClick={() => onChange(value.filter((_: any, i: number) => i !== idx))}
+                                        className="absolute right-2 top-2 text-slate-300 hover:text-red-500"
+                                    >
+                                        <X className="h-3 w-3" />
+                                    </button>
+                                    <div className="space-y-3 pt-2">
+                                        {field.fields?.map(subField => (
+                                            renderField(subField, item[subField.name], (val) => {
+                                                const newValue = [...value];
+                                                newValue[idx] = { ...newValue[idx], [subField.name]: val };
+                                                onChange(newValue);
+                                            })
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            default:
+                return null;
+        }
     };
 
     const handleSave = async () => {
@@ -187,9 +316,14 @@ export default function AdminPageEditor() {
             if (response.ok) {
                 toast.success('Page saved successfully');
                 navigate('/admin/content');
+            } else {
+                const errorData = await response.json();
+                toast.error(errorData.error || 'Failed to save page');
+                console.error('Save Error:', errorData);
             }
         } catch (error) {
-            toast.error('Failed to save page');
+            toast.error('Failed to save page: Network error');
+            console.error('Network Error:', error);
         } finally {
             setIsSaving(false);
         }
@@ -210,36 +344,17 @@ export default function AdminPageEditor() {
                     </div>
                 </div>
                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Basic</p>
-                    {[
-                        { type: 'hero', icon: Layout, label: 'Hero Block', desc: 'Heading & CTA' },
-                        { type: 'text', icon: Type, label: 'Rich Text', desc: 'Content & HTML' },
-                        { type: 'image', icon: ImageIcon, label: 'Image Block', desc: 'Full width visual' },
-                        { type: 'features', icon: CheckCircle2, label: 'Features', desc: 'List of icons' }
-                    ].map((b: any) => (
-                        <button key={b.type} onClick={() => addBlock(b.type)} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white border-2 border-slate-50 hover:border-primary/30 hover:bg-primary/5 transition-all group">
-                            <b.icon className="h-5 w-5 text-primary" />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Library</p>
+                    {Object.values(BLOCK_DEFINITIONS).map((def) => (
+                        <button
+                            key={def.type}
+                            onClick={() => addBlock(def.type as BlockType)}
+                            className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group ${def.isPremium ? 'bg-slate-900 border-slate-800 hover:bg-black' : 'bg-white border-slate-50 hover:border-primary'}`}
+                        >
+                            <def.icon className={`h-5 w-5 ${def.isPremium ? 'text-primary' : 'text-slate-400 group-hover:text-primary'}`} />
                             <div className="text-left">
-                                <p className="font-bold text-slate-700 text-sm">{b.label}</p>
-                                <p className="text-[10px] text-slate-400 font-medium">{b.desc}</p>
-                            </div>
-                        </button>
-                    ))}
-
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-8 mb-2 italic">Premium Experience</p>
-                    {[
-                        { type: 'hero-slider', icon: RefreshCw, label: 'Hero Slider', desc: 'Multi-slide motion', dark: true },
-                        { type: 'section-layout', icon: Layers, label: 'Column Layout', desc: 'Divided sections' },
-                        { type: 'parallax', icon: MousePointer2, label: 'Parallax Effect', desc: 'Depth & scroll' },
-                        { type: 'premium-list', icon: Settings2, label: 'Premium List', desc: '5+ Visual styles' },
-                        { type: 'testimonials', icon: User, label: 'Reviews Slider', desc: 'Client feedback' },
-                        { type: 'content-media', icon: Layout, label: 'Content Media', desc: 'Balanced layout' }
-                    ].map((b: any) => (
-                        <button key={b.type} onClick={() => addBlock(b.type)} className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group ${b.dark ? 'bg-slate-900 border-slate-800 hover:bg-black' : 'bg-white border-slate-50 hover:border-primary'}`}>
-                            <b.icon className="h-5 w-5 text-primary" />
-                            <div className="text-left">
-                                <p className={`font-bold text-sm ${b.dark ? 'text-white' : 'text-slate-700'}`}>{b.label}</p>
-                                <p className="text-[9px] text-slate-400 font-medium">{b.desc}</p>
+                                <p className={`font-bold text-sm ${def.isPremium ? 'text-white' : 'text-slate-700'}`}>{def.label}</p>
+                                <p className="text-[9px] text-slate-400 font-medium">{def.description}</p>
                             </div>
                         </button>
                     ))}
@@ -275,7 +390,7 @@ export default function AdminPageEditor() {
                 </header>
 
                 <div className="flex-1 overflow-y-auto p-12 flex justify-center custom-scrollbar">
-                    <div className={`bg-white shadow-2xl rounded-[3rem] transition-all duration-500 overflow-hidden flex flex-col min-h-[600px] border border-slate-200 ${viewport === 'desktop' ? 'w-full max-w-5xl' : viewport === 'tablet' ? 'w-[768px]' : 'w-[375px]'}`}>
+                    <div className={`bg-white shadow-2xl rounded-[3rem] transition-all duration-500 flex flex-col min-h-[600px] border border-slate-200 ${viewport === 'desktop' ? 'w-full max-w-5xl' : viewport === 'tablet' ? 'w-[768px]' : 'w-[375px]'}`}>
                         <div className="flex-1 p-8 bg-slate-50/30">
                             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                                 <SortableContext items={blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
@@ -312,88 +427,36 @@ export default function AdminPageEditor() {
                         </div>
                     ) : (
                         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                            {/* Generic Title & Subtitle for many blocks */}
-                            {(selectedBlock.type === 'hero' || selectedBlock.type === 'parallax' || selectedBlock.type === 'content-media') && (
-                                <>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Main Headline</label>
-                                        <textarea value={selectedBlock.content.title} onChange={(e) => updateBlockContent({ title: e.target.value })} className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary/20 font-bold text-slate-700 h-24" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Sub-Headline / Description</label>
-                                        <textarea value={selectedBlock.content.subtitle} onChange={(e) => updateBlockContent({ subtitle: e.target.value })} className="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-primary/20 font-medium text-slate-500 h-32" />
-                                    </div>
-                                </>
-                            )}
+                            <div className="flex items-center gap-2 mb-6 p-4 bg-slate-50 rounded-2xl">
+                                <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">Editing:</div>
+                                <div className="font-black text-slate-900">{BLOCK_DEFINITIONS[selectedBlock.type]?.label || 'Unknown Block'}</div>
+                            </div>
 
-                            {/* Hero Slider Specific Slider Editor */}
-                            {selectedBlock.type === 'hero-slider' && (
-                                <div className="space-y-6">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Manage Slides</label>
-                                        <button onClick={() => updateBlockContent({ slides: [...selectedBlock.content.slides, { ...DEFAULT_BLOCKS['hero-slider'].slides[0] }] })} className="px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1"><Plus className="h-3 w-3" /> Add Slide</button>
-                                    </div>
-                                    {selectedBlock.content.slides.map((slide: any, idx: number) => (
-                                        <div key={idx} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-4 relative">
-                                            <button onClick={() => updateBlockContent({ slides: selectedBlock.content.slides.filter((_: any, i: number) => i !== idx) })} className="absolute right-4 top-4 p-1 text-slate-300 hover:text-red-500"><X className="h-4 w-4" /></button>
-                                            <div className="space-y-2">
-                                                <input type="text" value={slide.title} placeholder="Slide Title" onChange={(e) => {
-                                                    const newSlides = [...selectedBlock.content.slides];
-                                                    newSlides[idx].title = e.target.value;
-                                                    updateBlockContent({ slides: newSlides });
-                                                }} className="w-full bg-white px-4 py-2 rounded-xl text-sm font-bold border-none" />
-                                                <input type="text" value={slide.bgImage} placeholder="Background Image URL" onChange={(e) => {
-                                                    const newSlides = [...selectedBlock.content.slides];
-                                                    newSlides[idx].bgImage = e.target.value;
-                                                    updateBlockContent({ slides: newSlides });
-                                                }} className="w-full bg-white px-4 py-2 rounded-xl text-[10px] border-none" />
-                                            </div>
-                                        </div>
-                                    ))}
+                            {/* Render Content Fields */}
+                            <div className="space-y-6">
+                                <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-slate-100 pb-2">Content</p>
+                                {BLOCK_DEFINITIONS[selectedBlock.type]?.fields.filter(f => f.group === 'content' || !f.group).map(field =>
+                                    renderField(field, selectedBlock.content[field.name], (val) => updateBlockContent({ [field.name]: val }))
+                                )}
+                            </div>
+
+                            {/* Render Style Fields */}
+                            {BLOCK_DEFINITIONS[selectedBlock.type]?.fields.some(f => f.group === 'style') && (
+                                <div className="space-y-6 pt-6">
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-slate-100 pb-2">Appearance</p>
+                                    {BLOCK_DEFINITIONS[selectedBlock.type]?.fields.filter(f => f.group === 'style').map(field =>
+                                        renderField(field, selectedBlock.content[field.name], (val) => updateBlockContent({ [field.name]: val }))
+                                    )}
                                 </div>
                             )}
 
-                            {/* List Style Toggle */}
-                            {selectedBlock.type === 'premium-list' && (
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">UI Architecture</label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {['grid', 'checklist', 'numbered', 'cards', 'glass'].map(style => (
-                                            <button key={style} onClick={() => updateBlockContent({ style })} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all ${selectedBlock.content.style === style ? 'bg-primary border-primary text-white' : 'bg-slate-50 border-transparent text-slate-400 hober:border-slate-200'}`}>
-                                                {style}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Parallax Toggle */}
-                            {selectedBlock.type === 'parallax' && (
-                                <div className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between">
-                                    <span className="text-xs font-bold text-slate-600">Enable Motion Effect</span>
-                                    <button onClick={() => updateBlockContent({ enabled: !selectedBlock.content.enabled })} className={`w-12 h-6 rounded-full transition-all relative ${selectedBlock.content.enabled ? 'bg-primary' : 'bg-slate-300'}`}>
-                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${selectedBlock.content.enabled ? 'right-1' : 'left-1'}`} />
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Column Layout Editor */}
-                            {selectedBlock.type === 'section-layout' && (
-                                <div className="space-y-6">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Column Configuration</label>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {[
-                                            { label: '50 / 50', cols: ['1/2', '1/2'] },
-                                            { label: '33 / 33 / 33', cols: ['1/3', '1/3', '1/3'] },
-                                            { label: '66 / 33', cols: ['2/3', '1/3'] },
-                                            { label: '100', cols: ['1'] }
-                                        ].map(config => (
-                                            <button key={config.label} onClick={() => updateBlockContent({ columns: config.cols.map(w => ({ width: w, blocks: [] })) })} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:border-primary transition-all text-[10px] font-black uppercase text-slate-500">{config.label}</button>
-                                        ))}
-                                    </div>
-                                    <div className="p-6 bg-primary/5 rounded-[2rem] border border-primary/10">
-                                        <p className="text-[10px] text-primary font-black uppercase leading-relaxed italic">The nested dragging experience is being optimized. For now, configure the structure here and use basic blocks for best results.</p>
-                                    </div>
+                            {/* Render Advanced Fields */}
+                            {BLOCK_DEFINITIONS[selectedBlock.type]?.fields.some(f => f.group === 'advanced') && (
+                                <div className="space-y-6 pt-6">
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-slate-100 pb-2">Settings</p>
+                                    {BLOCK_DEFINITIONS[selectedBlock.type]?.fields.filter(f => f.group === 'advanced').map(field =>
+                                        renderField(field, selectedBlock.content[field.name], (val) => updateBlockContent({ [field.name]: val }))
+                                    )}
                                 </div>
                             )}
                         </div>
