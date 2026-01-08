@@ -13,7 +13,7 @@ router.patch('/update', authenticate, updateProfile);
 // Admin User Management
 router.get('/admin/all', authenticate, isAdmin, getAllUsers);
 router.post('/admin/create', authenticate, isAdmin, createUser);
-router.patch('/admin/update/:id', authenticate, isAdmin, updateUser);
+router.put('/admin/update/:id', authenticate, isAdmin, updateUser);
 router.delete('/admin/delete/:id', authenticate, isAdmin, deleteUser);
 
 export default router;

@@ -27,9 +27,9 @@ export default function AdminThemeSettingsPage() {
             const response = await fetch('/api/settings');
             const data = await response.json();
 
-            const p = data.find((s: any) => s.key === 'theme_primary')?.value;
-            const a = data.find((s: any) => s.key === 'theme_accent')?.value;
-            const b = data.find((s: any) => s.key === 'theme_background')?.value;
+            const p = data['theme_primary'];
+            const a = data['theme_accent'];
+            const b = data['theme_background'];
 
             if (p) setPrimaryColor(hslToHex(p));
             if (a) setAccentColor(hslToHex(a));
@@ -45,22 +45,20 @@ export default function AdminThemeSettingsPage() {
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            const updates = [
-                { key: 'theme_primary', value: hexToHSL(primaryColor) },
-                { key: 'theme_accent', value: hexToHSL(accentColor) },
-                { key: 'theme_background', value: hexToHSL(backgroundColor) },
-            ];
+            const updates = {
+                theme_primary: hexToHSL(primaryColor),
+                theme_accent: hexToHSL(accentColor),
+                theme_background: hexToHSL(backgroundColor),
+            };
 
-            for (const update of updates) {
-                await fetch('/api/settings', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(update)
-                });
-            }
+            await fetch('/api/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updates)
+            });
 
             toast.success('Theme updated successfully');
             refreshTheme();

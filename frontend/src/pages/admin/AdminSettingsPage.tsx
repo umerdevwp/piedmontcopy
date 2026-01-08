@@ -1,145 +1,151 @@
-
 import { useState, useEffect } from 'react';
-import {
-    Settings, ShieldAlert, RefreshCw,
-    CheckCircle2, AlertCircle, ToggleLeft, ToggleRight,
-    ShieldCheck, Eye
-} from 'lucide-react';
 import { toast } from 'sonner';
+import { Save, Globe, Share2, MapPin, ShieldAlert } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 
+const SETTING_GROUPS = [
+    {
+        title: 'Brand Information',
+        icon: Globe,
+        fields: [
+            { key: 'site_description', label: 'Site Description', type: 'textarea' },
+            { key: 'footer_copyright', label: 'Copyright Text', type: 'text' }
+        ]
+    },
+    {
+        title: 'Contact Information',
+        icon: MapPin,
+        fields: [
+            { key: 'contact_phone', label: 'Phone Number', type: 'text' },
+            { key: 'contact_email', label: 'Email Address', type: 'text' },
+            { key: 'contact_address', label: 'Physical Address', type: 'text' }
+        ]
+    },
+    {
+        title: 'Social Media',
+        icon: Share2,
+        fields: [
+            { key: 'social_facebook', label: 'Facebook URL', type: 'url' },
+            { key: 'social_twitter', label: 'Twitter URL', type: 'url' },
+            { key: 'social_instagram', label: 'Instagram URL', type: 'url' },
+            { key: 'social_linkedin', label: 'LinkedIn URL', type: 'url' }
+        ]
+    },
+    {
+        title: 'System Configuration',
+        icon: ShieldAlert,
+        fields: [
+            {
+                key: 'sandbox_mode',
+                label: 'Sandbox Mode (Payment Testing)',
+                type: 'toggle',
+                description: 'Enable to bypass real payments during development'
+            }
+        ]
+    }
+];
+
 export default function AdminSettingsPage() {
+    const [settings, setSettings] = useState<Record<string, string>>({});
+    const [loading, setLoading] = useState(true);
     const { token } = useAuthStore();
-    const [settings, setSettings] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        fetchSettings();
+        fetch('/api/settings')
+            .then(res => res.json())
+            .then(data => {
+                setSettings(data);
+                setLoading(false);
+            })
+            .catch(() => {
+                toast.error('Failed to load settings');
+                setLoading(false);
+            });
     }, []);
 
-    const fetchSettings = async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch('/api/settings');
-            const data = await response.json();
-            setSettings(data);
-        } catch (error) {
-            toast.error('Failed to load settings');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleToggleSandbox = async () => {
-        const current = settings.find(s => s.key === 'sandbox_mode');
-        const newValue = current?.value === 'true' ? 'false' : 'true';
-
-        setIsSaving(true);
+    const handleSave = async () => {
         try {
             const response = await fetch('/api/settings', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify({ key: 'sandbox_mode', value: newValue })
+                body: JSON.stringify(settings)
             });
 
-            if (!response.ok) throw new Error('Failed to update');
-
-            toast.success(`Sandbox mode ${newValue === 'true' ? 'enabled' : 'disabled'}`);
-            fetchSettings();
+            if (!response.ok) throw new Error('Failed to save');
+            toast.success('Settings saved successfully');
         } catch (error) {
-            toast.error('Failed to update setting');
-        } finally {
-            setIsSaving(false);
+            toast.error('Failed to save settings');
         }
     };
 
-    const isSandboxEnabled = settings.find(s => s.key === 'sandbox_mode')?.value === 'true';
+    if (loading) return <div className="p-8">Loading...</div>;
 
     return (
-        <div className="p-8 max-w-5xl mx-auto">
-            <div className="flex items-center justify-between mb-12">
-                <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 bg-slate-900 rounded-[2rem] flex items-center justify-center text-white shadow-2xl">
-                        <Settings className="h-8 w-8" />
-                    </div>
-                    <div>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">System Settings</h1>
-                        <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Configure Global Parameters & Development Tools</p>
-                    </div>
+        <div className="p-6 max-w-4xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Global Settings</h1>
+                    <p className="text-slate-500 font-medium mt-1">Manage site-wide content and configuration</p>
                 </div>
                 <button
-                    onClick={fetchSettings}
-                    className="p-4 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors shadow-sm"
+                    onClick={handleSave}
+                    className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
                 >
-                    <RefreshCw className={`h-5 w-5 text-slate-400 ${isLoading ? 'animate-spin' : ''}`} />
+                    <Save className="h-4 w-4" />
+                    Save Changes
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Sandbox Mode Card */}
-                <div className={`p-10 rounded-[3rem] border-2 transition-all duration-500 ${isSandboxEnabled ? 'bg-amber-50 border-amber-200 shadow-amber-100 shadow-2xl' : 'bg-white border-slate-100 shadow-xl'}`}>
-                    <div className="flex items-start justify-between mb-8">
-                        <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${isSandboxEnabled ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                            <ShieldAlert className="h-7 w-7" />
+            <div className="space-y-8">
+                {SETTING_GROUPS.map((group, idx) => (
+                    <div key={idx} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
+                            <div className="p-2 bg-white rounded-lg border border-slate-200 shadow-sm">
+                                <group.icon className="h-5 w-5 text-primary" />
+                            </div>
+                            <h2 className="font-bold text-lg text-slate-900">{group.title}</h2>
                         </div>
-                        <button
-                            disabled={isSaving}
-                            onClick={handleToggleSandbox}
-                            className="relative focus:outline-none group"
-                        >
-                            {isSandboxEnabled ? (
-                                <ToggleRight className="h-12 w-12 text-amber-500 cursor-pointer" />
-                            ) : (
-                                <ToggleLeft className="h-12 w-12 text-slate-300 cursor-pointer" />
-                            )}
-                        </button>
+                        <div className="p-6 grid grid-cols-1 gap-6">
+                            {group.fields.map((field) => (
+                                <div key={field.key}>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                        {field.label}
+                                    </label>
+                                    {field.type === 'textarea' ? (
+                                        <textarea
+                                            value={settings[field.key] || ''}
+                                            onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
+                                            rows={3}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium resize-none"
+                                        />
+                                    ) : field.type === 'toggle' ? (
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() => setSettings({ ...settings, [field.key]: settings[field.key] === 'true' ? 'false' : 'true' })}
+                                                className={`w-14 h-8 rounded-full transition-colors relative cursor-pointer ${settings[field.key] === 'true' ? 'bg-primary' : 'bg-slate-200'}`}
+                                            >
+                                                <div className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow-sm transition-transform ${settings[field.key] === 'true' ? 'translate-x-6' : 'translate-x-0'}`} />
+                                            </button>
+                                            <span className="text-sm font-bold text-slate-600">
+                                                {settings[field.key] === 'true' ? 'Active' : 'Disabled'}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <input
+                                            type={field.type}
+                                            value={settings[field.key] || ''}
+                                            onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none font-medium"
+                                        />
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
-
-                    <h2 className="text-2xl font-black text-slate-900 mb-2">Sandbox Mode</h2>
-                    <p className="text-slate-500 text-sm font-medium leading-relaxed mb-8">
-                        Enable this to bypass real payment gateways. Orders will be marked as <span className="text-amber-600 font-bold uppercase tracking-tighter bg-amber-100 px-2 py-0.5 rounded-md">sandbox_test</span> and no credit cards will be charged.
-                    </p>
-
-                    <div className="flex items-center gap-3 p-4 bg-white/50 rounded-2xl border border-white">
-                        {isSandboxEnabled ? (
-                            <div className="flex items-center gap-2">
-                                <Eye className="h-4 w-4 text-amber-500" />
-                                <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Active Development Env</span>
-                            </div>
-                        ) : (
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck className="h-4 w-4 text-green-500" />
-                                <span className="text-[10px] font-black text-green-600 uppercase tracking-widest">Live Production Secure</span>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Coming Soon Card */}
-                <div className="p-10 rounded-[3rem] bg-slate-50 border border-slate-200 border-dashed flex flex-col items-center justify-center text-center opacity-60">
-                    <div className="h-14 w-14 bg-white rounded-2xl flex items-center justify-center text-slate-300 mb-6">
-                        <AlertCircle className="h-7 w-7" />
-                    </div>
-                    <h2 className="text-xl font-black text-slate-400 mb-2">Advanced Modules</h2>
-                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Available in Enterprise Update</p>
-                </div>
-            </div>
-
-            {/* Status Footer */}
-            <div className="mt-12 flex items-center justify-center gap-8">
-                <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Prisma DB Synced</span>
-                </div>
-                <div className="h-1 w-1 bg-slate-200 rounded-full" />
-                <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">API V1-STABLE</span>
-                </div>
+                ))}
             </div>
         </div>
     );

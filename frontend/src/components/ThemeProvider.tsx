@@ -9,12 +9,12 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
-    const applyTheme = (settings: any[]) => {
+    const applyTheme = (settings: Record<string, string>) => {
         const root = document.documentElement;
 
-        const primary = settings.find(s => s.key === 'theme_primary')?.value || '180 100% 25%';
-        const accent = settings.find(s => s.key === 'theme_accent')?.value || '25 100% 50%';
-        const background = settings.find(s => s.key === 'theme_background')?.value || '210 40% 98%';
+        const primary = settings['theme_primary'] || '180 100% 25%';
+        const accent = settings['theme_accent'] || '25 100% 50%';
+        const background = settings['theme_background'] || '210 40% 98%';
 
         root.style.setProperty('--primary', primary);
         root.style.setProperty('--accent', accent);

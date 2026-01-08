@@ -26,6 +26,8 @@ import serviceRoutes from './routes/serviceRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import settingRoutes from './routes/settingRoutes';
 import pageRoutes from './routes/pageRoutes';
+import navigationRoutes from './routes/navigationRoutes';
+import searchRoutes from './routes/searchRoutes';
 
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
@@ -34,6 +36,8 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/settings', settingRoutes);
 app.use('/api/pages', pageRoutes);
+app.use('/api/navigation', navigationRoutes);
+app.use('/api/search', searchRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'PiedmontCopy API is running' });

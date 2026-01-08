@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Package, ShoppingCart, Users,
-    Settings, LogOut, Printer, MonitorCheck, Layout
+    Settings, LogOut, Printer, MonitorCheck, Layout, Navigation
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Toaster } from 'sonner';
@@ -26,8 +26,9 @@ export default function AdminLayout() {
         { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
         { icon: Package, label: 'Products', path: '/admin/products' },
         { icon: MonitorCheck, label: 'Services', path: '/admin/services' },
-        { icon: Users, label: 'Users', path: '/admin/users' },
+        { icon: Users, label: 'Customers', path: '/admin/customers' }, // Changed from 'Users' to 'Customers'
         { icon: Layout, label: 'CMS', path: '/admin/content' },
+        { icon: Navigation, label: 'Navigation', path: '/admin/navigation' },
         {
             icon: Settings,
             label: 'Settings',

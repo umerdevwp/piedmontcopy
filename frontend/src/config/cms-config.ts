@@ -1,8 +1,6 @@
 
 import {
-    Layout, Type, Image as ImageIcon,
-    CheckCircle2, RefreshCw, Layers,
-    MousePointer2, Settings2, User
+    Layout, Type, RefreshCw, MousePointer2, Settings2, Layers
 } from 'lucide-react';
 
 export type FieldType = 'text' | 'textarea' | 'image' | 'color' | 'select' | 'toggle' | 'number' | 'repeater';

@@ -9,6 +9,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import DesignToolPage from './pages/DesignToolPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import AboutPage from './pages/AboutPage';
+import SearchResultsPage from './pages/SearchResultsPage';
 
 import LoginPage from './pages/LoginPage';
 import UserDashboardPage from './pages/UserDashboardPage';
@@ -22,6 +23,7 @@ import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminThemeSettingsPage from './pages/admin/AdminThemeSettingsPage';
 import AdminCMSPage from './pages/admin/AdminCMSPage';
 import AdminPageEditor from './pages/admin/AdminPageEditor';
+import AdminNavigationPage from './pages/admin/AdminNavigationPage';
 import DynamicPage from './pages/DynamicPage';
 import { ThemeProvider } from './components/ThemeProvider';
 
@@ -40,6 +42,7 @@ function App() {
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="dashboard" element={<UserDashboardPage />} />
+          <Route path="search" element={<SearchResultsPage />} />
           <Route path="p/:slug" element={<DynamicPage />} />
           <Route path="*" element={<div className="p-20 text-center font-bold text-2xl">404 - Not Found</div>} />
         </Route>
@@ -50,10 +53,11 @@ function App() {
           <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="products" element={<AdminProductsPage />} />
           <Route path="services" element={<AdminServicesPage />} />
-          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="customers" element={<AdminUsersPage />} />
           <Route path="content" element={<AdminCMSPage />} />
           <Route path="content/new" element={<AdminPageEditor />} />
           <Route path="content/edit/:id" element={<AdminPageEditor />} />
+          <Route path="navigation" element={<AdminNavigationPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="settings/theme" element={<AdminThemeSettingsPage />} />
         </Route>

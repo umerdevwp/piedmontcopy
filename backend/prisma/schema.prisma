@@ -119,3 +119,30 @@ model Page {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model NavigationItem {
+  id          Int      @id @default(autoincrement())
+  label       String
+  url         String?
+  type        String   // 'utility' | 'main' | 'mega-category' | 'mega-item' | 'promo'
+  parentId    Int?
+  position    Int      @default(0)
+  icon        String?
+  imageUrl    String?
+  description String?
+  badge       String?  // For "NEW", "SALE" badges
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  parent      NavigationItem?  @relation("NavigationHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    NavigationItem[] @relation("NavigationHierarchy")
+  scope       String   @default("header") // 'header' | 'footer'
+}
+
+model GlobalSetting {
+  key         String   @id
+  value       String   @db.Text
+  description String?
+  updatedAt   DateTime @updatedAt
+}

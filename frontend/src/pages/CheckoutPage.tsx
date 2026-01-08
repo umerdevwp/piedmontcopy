@@ -38,26 +38,14 @@ export default function CheckoutPage() {
         fetch('/api/settings')
             .then(res => res.json())
             .then(data => {
-                const sandbox = data.find((s: any) => s.key === 'sandbox_mode');
-                setIsSandbox(sandbox?.value === 'true');
+                // Settings API returns an object now (Record<string, string>)
+                const sandboxValue = data['sandbox_mode'];
+                setIsSandbox(sandboxValue === 'true');
             })
             .catch(console.error);
     }, []);
 
-    if (items.length === 0) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-slate-50">
-                <div className="bg-white p-12 rounded-[3rem] shadow-xl border border-slate-100 text-center max-w-md">
-                    <Loader2 className="h-16 w-16 text-slate-200 mx-auto mb-6 animate-pulse" />
-                    <h1 className="text-3xl font-black text-slate-900 mb-4">Your cart is empty</h1>
-                    <p className="text-slate-500 font-medium mb-8">Please add items to your cart before proceeding to checkout.</p>
-                    <Link to="/products" className="inline-flex items-center justify-center px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl transition-all hover:-translate-y-1">
-                        Browse Catalog
-                    </Link>
-                </div>
-            </div>
-        );
-    }
+    // ... (rest of code)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -87,6 +75,10 @@ export default function CheckoutPage() {
             const data = await response.json();
 
             if (!response.ok) {
+                // checks for FK constraint violation which implies stale cart items
+                if (data.details && data.details.includes('Foreign key constraint violated')) {
+                    throw new Error('Some items in your cart are no longer available. Please clear your cart and try again.');
+                }
                 throw new Error(data.details || data.error || 'Failed to place order');
             }
 

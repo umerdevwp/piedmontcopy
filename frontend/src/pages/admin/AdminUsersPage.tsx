@@ -202,7 +202,7 @@ export default function AdminUsersPage() {
                             <tr className="bg-white border-b border-slate-50">
                                 <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Entity</th>
                                 <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Access Level</th>
-                                <th className="px-10 py-6 text-[10px) font-black text-slate-400 uppercase tracking-widest">Created At</th>
+                                <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Created At</th>
                                 <th className="px-10 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Protocol</th>
                             </tr>
                         </thead>

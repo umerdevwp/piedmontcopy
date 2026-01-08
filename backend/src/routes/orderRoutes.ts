@@ -12,7 +12,7 @@ router.post('/', async (req, res) => {
         const { items, shippingAddress, totalAmount, userId } = req.body;
 
         // Check for Sandbox Mode
-        const sandboxSetting = await prisma.setting.findUnique({
+        const sandboxSetting = await prisma.globalSetting.findUnique({
             where: { key: 'sandbox_mode' }
         });
         const isSandbox = sandboxSetting?.value === 'true';
