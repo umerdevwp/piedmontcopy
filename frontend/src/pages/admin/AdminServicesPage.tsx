@@ -28,6 +28,8 @@ interface Service {
     features: string[];
     imageUrl: string;
     icon: string;
+    category: string;
+    startingPrice?: number;
     images: ServiceImageType[];
 }
 
@@ -48,6 +50,8 @@ export default function AdminServicesPage() {
         longDescription: '',
         features: [] as string[],
         icon: 'Printer',
+        category: 'General',
+        startingPrice: '',
         newImages: [] as File[],
         existingImages: [] as ServiceImageType[],
         deleteImageIds: [] as number[],
@@ -149,6 +153,8 @@ export default function AdminServicesPage() {
             submitData.append('description', formData.description);
             submitData.append('longDescription', formData.longDescription);
             submitData.append('icon', formData.icon);
+            submitData.append('category', formData.category);
+            submitData.append('startingPrice', formData.startingPrice.toString());
 
             // Append features as JSON
             submitData.append('features', JSON.stringify(formData.features));
@@ -226,6 +232,8 @@ export default function AdminServicesPage() {
             longDescription: service.longDescription,
             features: service.features,
             icon: service.icon,
+            category: service.category || 'General',
+            startingPrice: service.startingPrice?.toString() || '',
             newImages: [],
             existingImages: service.images || [],
             deleteImageIds: [],
@@ -244,6 +252,8 @@ export default function AdminServicesPage() {
             longDescription: '',
             features: [],
             icon: 'Printer',
+            category: 'General',
+            startingPrice: '',
             newImages: [],
             existingImages: [],
             deleteImageIds: [],
@@ -322,10 +332,13 @@ export default function AdminServicesPage() {
                                     {service.description}
                                 </p>
                                 <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Slug: {service.slug}</span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">{service.category}</span>
                                     <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 px-3 py-1 rounded-full">
                                         {service.features.length} Features
                                     </span>
+                                </div>
+                                <div className="mt-4 text-xl font-black text-slate-900">
+                                    ${Number(service.startingPrice || 0).toFixed(2)}
                                 </div>
                             </div>
                         </div>
@@ -385,17 +398,46 @@ export default function AdminServicesPage() {
                                     </div>
                                 </div>
 
-                                <div className="group">
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Icon Representation</label>
-                                    <select
-                                        value={formData.icon}
-                                        onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                                        className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-primary transition-all outline-none font-bold text-slate-900 appearance-none cursor-pointer"
-                                    >
-                                        {Object.keys(ICON_MAP).map(icon => (
-                                            <option key={icon} value={icon}>{icon}</option>
-                                        ))}
-                                    </select>
+                                <div className="space-y-6">
+                                    <div className="group">
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Category</label>
+                                        <select
+                                            value={formData.category}
+                                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                            className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-primary transition-all outline-none font-bold text-slate-900 appearance-none cursor-pointer"
+                                        >
+                                            <option value="General">General</option>
+                                            <option value="Marketing">Marketing</option>
+                                            <option value="Business">Business</option>
+                                            <option value="Corporate">Corporate</option>
+                                            <option value="Events">Events</option>
+                                            <option value="Personal">Personal</option>
+                                        </select>
+                                    </div>
+                                    <div className="group">
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Starting Price ($)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            required
+                                            value={formData.startingPrice}
+                                            onChange={(e) => setFormData({ ...formData, startingPrice: e.target.value })}
+                                            className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-primary focus:bg-white transition-all outline-none font-bold text-slate-900"
+                                            placeholder="99.00"
+                                        />
+                                    </div>
+                                    <div className="group">
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Icon Representation</label>
+                                        <select
+                                            value={formData.icon}
+                                            onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                                            className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-primary transition-all outline-none font-bold text-slate-900 appearance-none cursor-pointer"
+                                        >
+                                            {Object.keys(ICON_MAP).map(icon => (
+                                                <option key={icon} value={icon}>{icon}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 

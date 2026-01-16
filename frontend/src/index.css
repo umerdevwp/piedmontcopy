@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --primary: 180 100% 25%;
-    /* #007fb1-like, but we will use HSL */
+    --primary: 336 90% 27%;
+    /* #830738 */
     --primary-foreground: 0 0% 100%;
 
     --accent: 25 100% 50%;
@@ -91,4 +91,23 @@
 
 .ql-editor.ql-blank::before {
   @apply text-slate-400 font-bold !important;
+}
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-flow {
+  background-size: 200% auto;
+  animation: gradient-flow 5s ease infinite;
 }

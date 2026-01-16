@@ -6,17 +6,31 @@ const prisma = new PrismaClient();
 export const getAllServices = async (req: Request, res: Response) => {
     try {
         const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 10;
+        const limit = parseInt(req.query.limit as string) || 50; // Increased limit for showcase
         const skip = (page - 1) * limit;
+        const category = req.query.category as string;
+        const search = req.query.search as string;
+
+        const where: any = {};
+        if (category && category !== 'All') {
+            where.category = category;
+        }
+        if (search) {
+            where.OR = [
+                { title: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } }
+            ];
+        }
 
         const [services, total] = await Promise.all([
             prisma.service.findMany({
+                where,
                 include: { images: true },
                 orderBy: { createdAt: 'desc' },
                 skip,
                 take: limit
             }),
-            prisma.service.count()
+            prisma.service.count({ where })
         ]);
 
         res.json({
@@ -55,13 +69,13 @@ export const getServiceBySlug = async (req: Request, res: Response) => {
 
 export const createService = async (req: Request, res: Response) => {
     try {
-        const { slug, title, description, longDescription, features: featuresStr, icon, featuredImageIndex } = req.body;
+        const { slug, title, description, longDescription, features: featuresStr, icon, category, startingPrice, featuredImageIndex } = req.body;
         const files = req.files as Express.Multer.File[];
 
         // Parse features from JSON string
         let features = [];
         try {
-            features = JSON.parse(featuresStr);
+            features = Array.isArray(featuresStr) ? featuresStr : JSON.parse(featuresStr);
         } catch (e) {
             features = [];
         }
@@ -74,6 +88,8 @@ export const createService = async (req: Request, res: Response) => {
                 longDescription,
                 features,
                 icon,
+                category: category || "General",
+                startingPrice: startingPrice ? parseFloat(startingPrice) : null,
                 imageUrl: files && files.length > 0 ? `/uploads/${files[parseInt(featuredImageIndex) || 0].filename}` : null,
                 images: {
                     create: files ? files.map((file, index) => ({
@@ -107,7 +123,7 @@ export const updateService = async (req: Request, res: Response) => {
         }
 
         const { id } = req.params;
-        const { slug, title, description, longDescription, features: featuresStr, icon, deleteImageIds: deleteImageIdsStr, featuredImageId, featuredImageIndex } = req.body;
+        const { slug, title, description, longDescription, features: featuresStr, icon, category, startingPrice, deleteImageIds: deleteImageIdsStr, featuredImageId, featuredImageIndex } = req.body;
         const serviceId = parseInt(id);
         const files = req.files as Express.Multer.File[];
 
@@ -181,6 +197,8 @@ export const updateService = async (req: Request, res: Response) => {
                     longDescription,
                     features,
                     icon,
+                    category: category !== undefined ? category : undefined,
+                    startingPrice: startingPrice !== undefined ? (startingPrice ? parseFloat(startingPrice) : null) : undefined,
                     imageUrl: featuredImg ? featuredImg.url : undefined
                 },
                 include: { images: true }

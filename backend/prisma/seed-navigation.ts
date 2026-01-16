@@ -158,8 +158,9 @@ const navigationData = [
             }
         ]
     },
+    { label: 'Services', url: '/services', type: 'main', position: 7, scope: 'header' },
     {
-        label: 'Design Services', url: '/design-tool', type: 'main', position: 7, scope: 'header',
+        label: 'Design Services', url: '/design-tool', type: 'main', position: 8, scope: 'header',
         children: [
             {
                 label: 'Design Tools', type: 'mega-category', position: 0, scope: 'header', children: [
@@ -199,16 +200,20 @@ const navigationData = [
     {
         label: 'Contact', type: 'footer-column', position: 2, scope: 'footer',
         children: [
-            { label: '(555) 123-4567', url: '#', type: 'footer-link', description: 'icon-phone', position: 0, scope: 'footer' },
-            { label: 'support@piedmontcopy.com', url: '#', type: 'footer-link', description: 'icon-mail', position: 1, scope: 'footer' },
-            { label: '123 Print St, Design City', url: '#', type: 'footer-link', description: 'icon-map', position: 2, scope: 'footer' }
+            { label: '510-655-3030', url: 'tel:510-655-3030', type: 'footer-link', description: 'icon-phone', position: 0, scope: 'footer' },
+            { label: 'print@piedmontcopy.com', url: 'mailto:print@piedmontcopy.com', type: 'footer-link', description: 'icon-mail', position: 1, scope: 'footer' },
+            { label: '4237 Piedmont Ave Oakland', url: 'https://maps.google.com/?q=4237+Piedmont+Ave+Oakland', type: 'footer-link', description: 'icon-map', position: 2, scope: 'footer' }
         ]
     }
 ];
 
 const globalSettings = [
-    { key: 'site_description', value: 'Premium printing services for your business needs. Quality you can trust.' },
+    { key: 'site_description', value: 'Piedmontcopy presents the premier Online Printing Platform. We specialize in promotional, commercial, and informational print products completed with fast turnarounds and without sacrificing on quality. Piedmontcopy is located Oakland, California' },
+    { key: 'primary_color', value: '#830738' },
     { key: 'footer_copyright', value: `© ${new Date().getFullYear()} PiedmontCopy. Premium Printing Solutions.` },
+    { key: 'contact_phone', value: '510-655-3030' },
+    { key: 'contact_email', value: 'print@piedmontcopy.com' },
+    { key: 'contact_address', value: '4237 Piedmont Ave Oakland' },
     { key: 'social_facebook', value: 'https://facebook.com' },
     { key: 'social_twitter', value: 'https://twitter.com' },
     { key: 'social_instagram', value: 'https://instagram.com' },

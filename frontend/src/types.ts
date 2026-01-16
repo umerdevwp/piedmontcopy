@@ -58,6 +58,8 @@ export interface Service {
     features: string[];
     imageUrl: string;
     icon: string;
+    category: string;
+    startingPrice?: number;
     images?: ServiceImage[]; // Added images relation
     createdAt?: string;
     updatedAt?: string;

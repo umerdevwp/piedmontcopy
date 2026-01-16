@@ -7,6 +7,7 @@ import ProductListPage from './pages/ProductListPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import DesignToolPage from './pages/DesignToolPage';
+import ServicesPage from './pages/ServicesPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import AboutPage from './pages/AboutPage';
 import SearchResultsPage from './pages/SearchResultsPage';
@@ -43,6 +44,7 @@ function App() {
           <Route path="login" element={<LoginPage />} />
           <Route path="dashboard" element={<UserDashboardPage />} />
           <Route path="search" element={<SearchResultsPage />} />
+          <Route path="services" element={<ServicesPage />} />
           <Route path="p/:slug" element={<DynamicPage />} />
           <Route path="*" element={<div className="p-20 text-center font-bold text-2xl">404 - Not Found</div>} />
         </Route>
