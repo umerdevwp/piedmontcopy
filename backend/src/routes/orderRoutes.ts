@@ -84,14 +84,49 @@ router.get('/admin/all', authenticate, isAdmin, async (req, res) => {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const skip = (page - 1) * limit;
+        const searchQuery = (req.query.search as string)?.trim();
+        const statusFilter = req.query.status as string;
+
+        const where: any = {};
+        const conditions: any[] = [];
+
+        if (statusFilter && statusFilter !== 'all') {
+            conditions.push({ status: statusFilter });
+        }
+
+        if (searchQuery) {
+            const numericId = parseInt(searchQuery.replace(/#/g, ''));
+            conditions.push({
+                OR: [
+                    ...(!isNaN(numericId) ? [{ id: numericId }] : []),
+                    {
+                        user: {
+                            OR: [
+                                { email: { contains: searchQuery, mode: 'insensitive' } },
+                                { fullName: { contains: searchQuery, mode: 'insensitive' } }
+                            ]
+                        }
+                    },
+                    { shippingAddress: { path: ['name'], string_contains: searchQuery } },
+                    { shippingAddress: { path: ['firstName'], string_contains: searchQuery } },
+                    { shippingAddress: { path: ['lastName'], string_contains: searchQuery } },
+                    { shippingAddress: { path: ['email'], string_contains: searchQuery } },
+                    { shippingAddress: { path: ['street'], string_contains: searchQuery } },
+                    { shippingAddress: { path: ['address'], string_contains: searchQuery } }
+                ]
+            });
+        }
+
+        if (conditions.length > 0) {
+            where.AND = conditions;
+        }
 
         const [orders, total] = await Promise.all([
             prisma.order.findMany({
+                where,
                 include: {
                     items: {
-                        include: {
-                            product: true
-                        }
+                        include: { product: true }
                     },
                     user: {
                         select: {
@@ -107,7 +142,7 @@ router.get('/admin/all', authenticate, isAdmin, async (req, res) => {
                 skip,
                 take: limit
             }),
-            prisma.order.count()
+            prisma.order.count({ where })
         ]);
 
         res.json({
@@ -119,9 +154,13 @@ router.get('/admin/all', authenticate, isAdmin, async (req, res) => {
                 totalPages: Math.ceil(total / limit)
             }
         });
-    } catch (error) {
-        console.error('Error fetching admin orders:', error);
-        res.status(500).json({ error: 'Failed to fetch orders' });
+    } catch (error: any) {
+        console.error('CRITICAL: Admin Orders Fetch Error:', error);
+        res.status(500).json({
+            error: 'Failed to fetch orders',
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 });
 
@@ -231,5 +270,10 @@ router.put('/admin/:id', authenticate, isAdmin, async (req, res) => {
         res.status(500).json({ error: 'Failed to update order' });
     }
 });
+
+// Helper to handle BigInt serialization
+(BigInt.prototype as any).toJSON = function () {
+    return this.toString();
+};
 
 export default router;

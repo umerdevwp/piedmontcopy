@@ -6,9 +6,19 @@ export const getProducts = async (req: Request, res: Response) => {
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 1000;
         const skip = (page - 1) * limit;
+        const search = req.query.search as string;
+
+        const where: any = {};
+        if (search) {
+            where.name = {
+                contains: search,
+                mode: 'insensitive'
+            };
+        }
 
         const [products, total] = await Promise.all([
             prisma.product.findMany({
+                where,
                 include: {
                     options: {
                         include: {
@@ -21,7 +31,7 @@ export const getProducts = async (req: Request, res: Response) => {
                 take: limit === 0 ? undefined : limit,
                 orderBy: { createdAt: 'desc' }
             }),
-            prisma.product.count()
+            prisma.product.count({ where })
         ]);
 
         res.json({

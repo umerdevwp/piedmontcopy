@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, X, Loader2, ChevronDown, ChevronUp, Upload, Star } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Loader2, ChevronDown, ChevronUp, Upload, Star, Search } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { toast } from 'sonner';
@@ -46,6 +46,7 @@ export default function AdminProductsPage() {
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [expandedProduct, setExpandedProduct] = useState<number | null>(null);
     const [page, setPage] = useState(1);
+    const [search, setSearch] = useState('');
     const [meta, setMeta] = useState({ total: 0, totalPages: 0 });
     const { token, logout } = useAuthStore();
     const navigate = useNavigate();
@@ -64,13 +65,20 @@ export default function AdminProductsPage() {
     });
 
     useEffect(() => {
-        fetchProducts();
-    }, [page]);
+        const handler = setTimeout(() => {
+            fetchProducts();
+        }, 300); // 300ms debounce
+        return () => clearTimeout(handler);
+    }, [page, search]);
+
+    useEffect(() => {
+        setPage(1); // Reset to first page on search change
+    }, [search]);
 
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/products?page=${page}&limit=10`);
+            const response = await fetch(`/api/products?page=${page}&limit=10&search=${encodeURIComponent(search)}`);
             if (!response.ok) {
                 if (response.status === 401) {
                     logout();
@@ -332,13 +340,33 @@ export default function AdminProductsPage() {
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">Products</h1>
                     <p className="text-slate-500 text-sm font-medium mt-1 uppercase tracking-widest">Inventory Management System</p>
                 </div>
-                <button
-                    onClick={() => { resetForm(); setShowModal(true); }}
-                    className="flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 font-bold active:scale-95"
-                >
-                    <Plus className="h-5 w-5" />
-                    NEW PRODUCT
-                </button>
+                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 flex-1 md:justify-end">
+                    <div className="relative group w-full max-w-md">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                        <input
+                            type="text"
+                            placeholder="Search products by name or alphabet..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                        />
+                        {search && (
+                            <button
+                                onClick={() => setSearch('')}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-all"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => { resetForm(); setShowModal(true); }}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 font-bold active:scale-95 whitespace-nowrap"
+                    >
+                        <Plus className="h-5 w-5" />
+                        NEW PRODUCT
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4">
@@ -743,7 +771,7 @@ export default function AdminProductsPage() {
                                     disabled={loading}
                                     className="flex-1 px-8 py-5 bg-primary text-white rounded-3xl font-black shadow-2xl shadow-primary/30 hover:shadow-primary/40 hover:-translate-y-1 transition-all disabled:opacity-50 flex items-center justify-center gap-4 uppercase tracking-widest text-xs active:scale-[0.98]"
                                 >
-                                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : editingProduct ? 'COMMIT PRODUCT UPDATES' : 'INITIALIZE NEW PRODUCT'}
+                                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : editingProduct ? 'SAVE CHANGES' : 'INITIALIZE NEW PRODUCT'}
                                 </button>
                             </div>
                         </form>

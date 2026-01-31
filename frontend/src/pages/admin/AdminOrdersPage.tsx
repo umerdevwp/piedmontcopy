@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Loader2, Trash2, Edit3, Save, X } from 'lucide-react';
+import { Eye, Loader2, Trash2, Edit3, Save, X, Search, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../store/useAuthStore';
 import Pagination from '../../components/Pagination';
@@ -50,35 +50,45 @@ export default function AdminOrdersPage() {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<Order | null>(null);
     const [page, setPage] = useState(1);
+    const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [meta, setMeta] = useState({ total: 0, totalPages: 0 });
     const { token, logout } = useAuthStore();
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetchOrders();
-    }, [page]);
+        const handler = setTimeout(() => {
+            fetchOrders();
+        }, 300); // 300ms debounce
+        return () => clearTimeout(handler);
+    }, [page, search, statusFilter]);
+
+    useEffect(() => {
+        setPage(1); // Reset to first page on search or status change
+    }, [search, statusFilter]);
 
     const fetchOrders = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`/api/orders/admin/all?page=${page}&limit=10`, {
+            const response = await fetch(`/api/orders/admin/all?page=${page}&limit=10&search=${encodeURIComponent(search)}&status=${statusFilter}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
             if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
                 if (response.status === 401) {
                     logout();
                     navigate('/login');
-                    throw new Error('Unauthorized - please login again');
+                    throw new Error(err.error || 'Unauthorized - please login again');
                 }
-                throw new Error('Failed to fetch orders');
+                throw new Error(err.details || err.error || 'Failed to fetch orders');
             }
             const result = await response.json();
             setOrders(result.data || []);
             setMeta(result.meta || { total: 0, totalPages: 0 });
-        } catch (error) {
-            toast.error('Failed to fetch orders');
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to fetch orders');
         } finally {
             setLoading(false);
         }
@@ -192,9 +202,51 @@ export default function AdminOrdersPage() {
                     <h1 className="text-3xl font-black text-slate-900 tracking-tight">Order Logs</h1>
                     <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mt-1 italic">Real-time fulfillment pipeline</p>
                 </div>
-                <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-100 px-4 py-2 rounded-full">
-                    Pool: {meta?.total || 0} units
+                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 flex-1 md:justify-end">
+                    <div className="relative group w-full md:max-w-md">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                        <input
+                            type="text"
+                            placeholder="Search by ID, name/email..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                        />
+                        {search && (
+                            <button
+                                onClick={() => setSearch('')}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-all"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
+                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-100 px-4 py-3 rounded-2xl whitespace-nowrap hidden xl:block">
+                        Pool: {meta?.total || 0} units
+                    </div>
                 </div>
+            </div>
+
+            <div className="flex items-center gap-2 overflow-x-auto pb-4 -mx-1 px-1 scrollbar-hide no-scrollbar">
+                <button
+                    onClick={() => setStatusFilter('all')}
+                    className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border ${statusFilter === 'all'
+                        ? 'bg-slate-900 text-white border-transparent'
+                        : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
+                >
+                    All Logs
+                </button>
+                {STATUS_OPTIONS.map(status => (
+                    <button
+                        key={status}
+                        onClick={() => setStatusFilter(status)}
+                        className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap shadow-sm border ${statusFilter === status
+                            ? STATUS_COLORS[status] + ' border-transparent'
+                            : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'}`}
+                    >
+                        {status}
+                    </button>
+                ))}
             </div>
 
             <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden">
@@ -277,7 +329,7 @@ export default function AdminOrdersPage() {
                         <div className="p-10 border-b border-slate-50 flex items-center justify-between shrink-0">
                             <div>
                                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-                                    {isEditing ? 'Sync Protocol' : 'System Order'} #{isEditing ? editData?.id : selectedOrder?.id}
+                                    {isEditing ? 'Order Number' : 'System Order'} #{isEditing ? editData?.id : selectedOrder?.id}
                                 </h2>
                                 <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1 italic">
                                     {isEditing ? 'Editing Order Payload' : `Logged on ${new Date(selectedOrder?.createdAt || '').toLocaleString()}`}
@@ -292,7 +344,7 @@ export default function AdminOrdersPage() {
                                             className="px-6 py-3 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all flex items-center gap-2"
                                         >
                                             {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-                                            COMMIT SYNC
+                                            SAVE CHANGES
                                         </button>
                                         <button
                                             onClick={() => { setIsEditing(false); setEditData(null); }}
@@ -316,7 +368,7 @@ export default function AdminOrdersPage() {
                             {/* Fulfillment Status Edit (Only in Edit Mode) */}
                             {isEditing && editData && (
                                 <div className="space-y-4">
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Deployment Status</h3>
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Order Status</h3>
                                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
                                         {STATUS_OPTIONS.map(status => (
                                             <button
@@ -336,7 +388,7 @@ export default function AdminOrdersPage() {
 
                             {/* Items Section */}
                             <div className="space-y-6">
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Procurement Items</h3>
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Order Items</h3>
                                 <div className="space-y-4">
                                     {(isEditing ? editData?.items : selectedOrder?.items)?.map((item, idx) => (
                                         <div key={item.id} className={`flex items-start gap-6 p-6 rounded-[2rem] border transition-all ${isEditing ? 'bg-white border-amber-200 shadow-lg shadow-amber-500/5' : 'bg-slate-50 border-slate-100'}`}>
@@ -484,7 +536,7 @@ export default function AdminOrdersPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Logistics Terminal</h3>
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Shipping Details</h3>
                                     <div className={`p-6 rounded-[2rem] border space-y-2 ${isEditing ? 'bg-white border-amber-200' : 'bg-slate-50 border-slate-100'}`}>
                                         {isEditing && editData ? (
                                             <div className="space-y-3">
@@ -536,7 +588,7 @@ export default function AdminOrdersPage() {
 
                             {/* Final Valuation */}
                             <div className="pt-10 border-t border-slate-100 flex items-center justify-between shrink-0 mb-4">
-                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Total Value Generated</div>
+                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Total Value</div>
                                 <div className={`text-4xl font-black ${isEditing ? 'text-amber-500' : 'text-primary'}`}>
                                     ${parseFloat((isEditing ? editData?.totalAmount : selectedOrder?.totalAmount)?.toString() || '0').toFixed(2)}
                                 </div>
