@@ -167,7 +167,7 @@ export default function AdminUsersPage() {
         <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Identity Management</h1>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Customer Management</h1>
                     <p className="text-slate-500 font-bold text-xs uppercase tracking-widest mt-1 italic">Authorized personnel & platform users</p>
                 </div>
                 <button
@@ -175,7 +175,7 @@ export default function AdminUsersPage() {
                     className="flex items-center justify-center gap-3 px-8 py-4 bg-primary text-white rounded-[2rem] shadow-xl shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1 transition-all duration-300 font-black text-xs uppercase tracking-widest active:scale-95"
                 >
                     <Plus className="h-5 w-5" />
-                    Initialize Node
+                    Add New Customer
                 </button>
             </div>
 
@@ -192,7 +192,7 @@ export default function AdminUsersPage() {
                         />
                     </form>
                     <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">
-                        Node Population: {meta?.total || 0} Entities
+                        Customer Population: {meta?.total || 0} Customers
                     </div>
                 </div>
 
@@ -200,10 +200,10 @@ export default function AdminUsersPage() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-white border-b border-slate-50">
-                                <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Entity</th>
+                                <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Customer</th>
                                 <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Access Level</th>
                                 <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Created At</th>
-                                <th className="px-10 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Protocol</th>
+                                <th className="px-10 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -277,7 +277,7 @@ export default function AdminUsersPage() {
                         <div className="p-10 border-b border-slate-50 flex items-center justify-between shrink-0">
                             <div>
                                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-                                    {editingUser ? 'Sync Node Protocol' : 'Initialize Node Entity'}
+                                    {editingUser ? 'Customer Detail' : 'Add Customer'}
                                 </h2>
                                 <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1 italic">Security Authorization Required</p>
                             </div>
@@ -289,7 +289,7 @@ export default function AdminUsersPage() {
                         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-10 space-y-8 custom-scrollbar">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Universal Identifier (Email)</label>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
                                     <input
                                         type="email"
                                         required
@@ -313,7 +313,7 @@ export default function AdminUsersPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Legal Full Name</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
                                 <input
                                     type="text"
                                     value={formData.fullName}
@@ -325,7 +325,7 @@ export default function AdminUsersPage() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Encrypted Access Code (Password)</label>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
                                     <input
                                         type="password"
                                         required={!editingUser}
@@ -336,7 +336,7 @@ export default function AdminUsersPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Identity Hot-line (Phone)</label>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone</label>
                                     <input
                                         type="tel"
                                         value={formData.phone}
@@ -348,7 +348,7 @@ export default function AdminUsersPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Residency Coordinates (Address)</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Address</label>
                                 <textarea
                                     value={formData.address}
                                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -370,7 +370,7 @@ export default function AdminUsersPage() {
                                     disabled={loading}
                                     className="flex-1 px-8 py-4 bg-primary text-white rounded-2xl font-black shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1 transition-all disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-widest text-[10px] active:scale-[0.98]"
                                 >
-                                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : editingUser ? 'Synchronize Protocol' : 'Finalize Initialization'}
+                                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : editingUser ? 'Save Changes' : 'Add New Customer'}
                                 </button>
                             </div>
                         </form>

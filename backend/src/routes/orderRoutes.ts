@@ -126,7 +126,15 @@ router.get('/admin/all', authenticate, isAdmin, async (req, res) => {
                 where,
                 include: {
                     items: {
-                        include: { product: true }
+                        include: {
+                            product: {
+                                include: {
+                                    options: {
+                                        include: { values: true }
+                                    }
+                                }
+                            }
+                        }
                     },
                     user: {
                         select: {
@@ -248,7 +256,13 @@ router.put('/admin/:id', authenticate, isAdmin, async (req, res) => {
                 include: {
                     items: {
                         include: {
-                            product: true
+                            product: {
+                                include: {
+                                    options: {
+                                        include: { values: true }
+                                    }
+                                }
+                            }
                         }
                     },
                     user: {

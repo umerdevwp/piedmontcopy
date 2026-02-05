@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Loader2, Trash2, Edit3, Save, X, Search, Filter } from 'lucide-react';
+import { Eye, Loader2, Trash2, Edit3, Save, X, Search, Filter, Download, FileText, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../store/useAuthStore';
 import Pagination from '../../components/Pagination';
@@ -157,10 +157,12 @@ export default function AdminOrdersPage() {
     const [addingParamTo, setAddingParamTo] = useState<number | null>(null);
     const [newParamLabel, setNewParamLabel] = useState('');
 
-    const confirmAddParam = (idx: number) => {
-        if (!editData || !newParamLabel) return;
+    const confirmAddParam = (idx: number, key?: string, value?: string) => {
+        if (!editData) return;
+        const label = key || newParamLabel;
+        if (!label) return;
         const newItems = [...editData.items];
-        const newConfigs = { ...newItems[idx].configurations, [newParamLabel]: 'Pending' };
+        const newConfigs = { ...newItems[idx].configurations, [label]: value || 'Pending' };
         newItems[idx] = { ...newItems[idx], configurations: newConfigs };
         setEditData({ ...editData, items: newItems });
         setAddingParamTo(null);
@@ -429,88 +431,139 @@ export default function AdminOrdersPage() {
                                                 {/* Configurations */}
                                                 <div className="mt-4 space-y-3">
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">DNA Parameters</span>
+                                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Product option parameter</span>
                                                         {isEditing && (
                                                             <button
                                                                 onClick={() => setAddingParamTo(idx)}
                                                                 className="text-[8px] font-black text-amber-500 hover:text-amber-600 uppercase tracking-widest flex items-center gap-1 group/btn"
                                                             >
                                                                 <Edit3 className="h-2.5 w-2.5 group-hover/btn:rotate-12 transition-transform" />
-                                                                INSERT PARAMETER
+                                                                INSERT PRODUCT PARAMETER
                                                             </button>
                                                         )}
                                                     </div>
 
                                                     {isEditing && addingParamTo === idx && (
-                                                        <div className="flex items-center gap-2 animate-in zoom-in duration-200">
-                                                            <input
-                                                                autoFocus
-                                                                placeholder="LABEL (e.g. SIZE)"
-                                                                value={newParamLabel}
-                                                                onChange={(e) => setNewParamLabel(e.target.value)}
-                                                                onKeyDown={(e) => e.key === 'Enter' && confirmAddParam(idx)}
-                                                                className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-[9px] font-black uppercase outline-none w-32"
-                                                            />
-                                                            <button
-                                                                onClick={() => confirmAddParam(idx)}
-                                                                className="p-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
-                                                            >
-                                                                <Save className="h-3 w-3" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setAddingParamTo(null)}
-                                                                className="p-1.5 bg-slate-100 text-slate-400 rounded-lg hover:bg-slate-200 transition-colors"
-                                                            >
-                                                                <X className="h-3 w-3" />
-                                                            </button>
+                                                        <div className="flex flex-col gap-2 p-4 bg-amber-50 rounded-2xl border border-amber-200 animate-in slide-in-from-top-2 duration-200">
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Select Product Parameter</span>
+                                                                <button onClick={() => setAddingParamTo(null)} className="text-amber-400 hover:text-amber-600"><X className="h-3 w-3" /></button>
+                                                            </div>
+                                                            <div className="grid grid-cols-2 gap-2">
+                                                                {item.product.options?.map((opt: any) => (
+                                                                    <button
+                                                                        key={opt.id}
+                                                                        onClick={() => confirmAddParam(idx, opt.name, opt.values[0]?.name || 'Pending')}
+                                                                        className="px-3 py-2 bg-white border border-amber-200 rounded-xl text-[9px] font-black text-slate-600 uppercase hover:bg-amber-100 hover:border-amber-300 transition-all text-left truncate"
+                                                                    >
+                                                                        {opt.name}
+                                                                    </button>
+                                                                ))}
+                                                                <div className="col-span-2 mt-2 pt-2 border-t border-amber-100 flex gap-2">
+                                                                    <input
+                                                                        placeholder="OR TYPE CUSTOM KEY..."
+                                                                        value={newParamLabel}
+                                                                        onChange={(e) => setNewParamLabel(e.target.value)}
+                                                                        onKeyDown={(e) => e.key === 'Enter' && confirmAddParam(idx)}
+                                                                        className="flex-1 px-3 py-1.5 bg-white border border-amber-200 rounded-lg text-[9px] font-black uppercase outline-none focus:ring-2 ring-amber-500/10"
+                                                                    />
+                                                                    <button
+                                                                        onClick={() => confirmAddParam(idx)}
+                                                                        className="px-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
+                                                                    >
+                                                                        <Save className="h-3 w-3" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     )}
 
                                                     <div className="flex flex-wrap gap-2">
-                                                        {Object.entries(item.configurations).map(([key, value]: [string, any]) => (
-                                                            <div key={key} className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden group/conf">
-                                                                <span className="bg-slate-50 px-3 py-1.5 text-slate-400 font-black text-[9px] uppercase tracking-tighter border-r border-slate-100">{key}</span>
-                                                                {isEditing ? (
-                                                                    <div className="flex items-center">
-                                                                        <input
-                                                                            type="text"
-                                                                            value={typeof value === 'object' ? value.name : value}
-                                                                            onChange={(e) => handleConfigUpdate(idx, key, e.target.value)}
-                                                                            className="px-3 py-1.5 text-slate-900 font-black text-[9px] uppercase outline-none focus:bg-amber-50 w-24"
-                                                                        />
-                                                                        <button
-                                                                            onClick={() => removeConfigKey(idx, key)}
-                                                                            className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"
-                                                                        >
-                                                                            <X className="h-3 w-3" />
-                                                                        </button>
-                                                                    </div>
-                                                                ) : (
-                                                                    <span className="px-3 py-1.5 text-slate-900 font-black text-[9px] uppercase">{typeof value === 'object' ? value.name : value}</span>
-                                                                )}
-                                                            </div>
-                                                        ))}
+                                                        {Object.entries(item.configurations).map(([key, value]: [string, any]) => {
+                                                            const productOption = item.product.options?.find((o: any) => o.name === key);
+                                                            const displayValue = typeof value === 'object' ? value.name : value;
+
+                                                            return (
+                                                                <div key={key} className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden group/conf">
+                                                                    <span className="bg-slate-50 px-3 py-1.5 text-slate-400 font-black text-[9px] uppercase tracking-tighter border-r border-slate-100">{key}</span>
+                                                                    {isEditing ? (
+                                                                        <div className="flex items-center">
+                                                                            {productOption ? (
+                                                                                <select
+                                                                                    value={displayValue}
+                                                                                    onChange={(e) => handleConfigUpdate(idx, key, e.target.value)}
+                                                                                    className="px-3 py-1.5 text-slate-900 font-black text-[9px] uppercase outline-none focus:bg-amber-50 min-w-[80px] bg-transparent appearance-none cursor-pointer"
+                                                                                >
+                                                                                    {productOption.values.map((v: any) => (
+                                                                                        <option key={v.id} value={v.name}>{v.name}</option>
+                                                                                    ))}
+                                                                                </select>
+                                                                            ) : (
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={displayValue}
+                                                                                    onChange={(e) => handleConfigUpdate(idx, key, e.target.value)}
+                                                                                    className="px-3 py-1.5 text-slate-900 font-black text-[9px] uppercase outline-none focus:bg-amber-50 w-24"
+                                                                                />
+                                                                            )}
+                                                                            <button
+                                                                                onClick={() => removeConfigKey(idx, key)}
+                                                                                className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"
+                                                                            >
+                                                                                <X className="h-3 w-3" />
+                                                                            </button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="px-3 py-1.5 text-slate-900 font-black text-[9px] uppercase">{displayValue}</span>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
 
                                                     {/* Files Display in Item */}
                                                     {item.files && item.files.length > 0 && (
-                                                        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap gap-2">
-                                                            {item.files.map((file, fidx) => (
-                                                                <a
-                                                                    key={fidx}
-                                                                    href={file.url}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all group/art"
-                                                                >
-                                                                    {file.type.includes('image') ? (
-                                                                        <img src={file.url} className="h-4 w-4 object-cover rounded shadow-sm" alt="Artwork" />
-                                                                    ) : (
-                                                                        <Eye className="h-4 w-4" />
-                                                                    )}
-                                                                    <span className="text-[9px] font-black uppercase tracking-widest">{file.name}</span>
-                                                                </a>
-                                                            ))}
+                                                        <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col gap-4">
+                                                            <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] flex items-center gap-2">
+                                                                <FileText className="h-3 w-3" />
+                                                                Attached Files ({item.files.length})
+                                                            </h4>
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                                {item.files.map((file, fidx) => (
+                                                                    <div key={fidx} className="group/file relative flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-2xl hover:border-primary/30 hover:shadow-md transition-all">
+                                                                        <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden shrink-0 border border-slate-100">
+                                                                            {file.type.includes('image') ? (
+                                                                                <img src={file.url} className="h-full w-full object-cover" alt="Preview" />
+                                                                            ) : (
+                                                                                <FileText className="h-5 w-5 text-slate-400" />
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex-1 min-w-0 pr-20">
+                                                                            <div className="text-[10px] font-black text-slate-900 truncate uppercase tracking-tight">{file.name}</div>
+                                                                            <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{file.type.split('/')[1] || 'Unknown'} File</div>
+                                                                        </div>
+                                                                        <div className="absolute right-2 flex items-center gap-1">
+                                                                            <a
+                                                                                href={file.url}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+                                                                                title="Preview"
+                                                                            >
+                                                                                <Eye className="h-3.5 w-3.5" />
+                                                                            </a>
+                                                                            <a
+                                                                                href={file.url}
+                                                                                download={file.name}
+                                                                                className="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all"
+                                                                                title="Download"
+                                                                            >
+                                                                                <Download className="h-3.5 w-3.5" />
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
