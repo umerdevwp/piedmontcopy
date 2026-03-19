@@ -226,7 +226,7 @@ export default function AdminDashboardPage() {
                         <Activity className="h-5 w-5 text-slate-300" />
                     </div>
                     <div className="space-y-6">
-                        {recentActivity?.orders.map((order, i) => (
+                        {recentActivity?.orders.map((order) => (
                             <ActivityItem
                                 key={`order-${order.id}`}
                                 title="New Order Received"
@@ -236,7 +236,7 @@ export default function AdminDashboardPage() {
                                 color="blue"
                             />
                         ))}
-                        {recentActivity?.users.map((user, i) => (
+                        {recentActivity?.users.map((user) => (
                             <ActivityItem
                                 key={`user-${user.id}`}
                                 title="New User Registered"
@@ -287,7 +287,7 @@ export default function AdminDashboardPage() {
                                 />
                                 <Tooltip content={<CustomTooltip />} />
                                 <Bar dataKey="counts" radius={[6, 6, 0, 0]}>
-                                    {dailyStats.map((entry, index) => (
+                                    {dailyStats.map((_, index) => (
                                         <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#3b82f6' : '#8b5cf6'} />
                                     ))}
                                 </Bar>

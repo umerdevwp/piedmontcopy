@@ -200,8 +200,8 @@ export default function CheckoutPage() {
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <img src="https://img.icons8.com/color/48/visa.png" className="h-8 grayscale hover:grayscale-0 transition-all cursor-crosshair" alt="Visa" />
-                                        <img src="https://img.icons8.com/color/48/mastercard.png" className="h-8 grayscale hover:grayscale-0 transition-all cursor-crosshair" alt="Mastercard" />
+                                        <img src="https://raw.githubusercontent.com/aaronfagan/svg-credit-card-payment-icons/main/flat-rounded/visa.svg" className="h-8 grayscale hover:grayscale-0 transition-all cursor-crosshair" alt="Visa" />
+                                        <img src="https://raw.githubusercontent.com/aaronfagan/svg-credit-card-payment-icons/main/flat-rounded/mastercard.svg" className="h-8 grayscale hover:grayscale-0 transition-all cursor-crosshair" alt="Mastercard" />
                                     </div>
                                 </div>
 

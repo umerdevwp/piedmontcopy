@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Loader2, Trash2, Edit3, Save, X, Search, Filter, Download, FileText, ImageIcon } from 'lucide-react';
+import { Eye, Loader2, Trash2, Edit3, Save, X, Search, Download, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../store/useAuthStore';
 import Pagination from '../../components/Pagination';
@@ -29,6 +29,11 @@ interface Order {
             id: number;
             name: string;
             imageUrl: string;
+            options?: Array<{
+                id: number;
+                name: string;
+                values: Array<{ id: number; name: string }>;
+            }>;
         };
     }>;
 }
